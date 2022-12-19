@@ -117,7 +117,6 @@ public class DefaultPraxisProject implements PraxisProject {
     private boolean actionsEnabled;
     private List<URI> libPath;
     private ClassPath libsCP;
-    private ClassPath compileCP;
     private TaskExec activeExec;
 
     DefaultPraxisProject(FileObject directory, FileObject projectFile, ProjectState state)
@@ -148,7 +147,6 @@ public class DefaultPraxisProject implements PraxisProject {
         executedHandlers = new HashSet<>();
         actionsEnabled = true;
         libPath = List.of();
-        compileCP = CoreClassPathRegistry.getInstance().getCompileClasspath();
     }
 
     private ProjectPropertiesImpl parseProjectFile(FileObject projectFile) {
@@ -267,8 +265,6 @@ public class DefaultPraxisProject implements PraxisProject {
         libPath = List.copyOf(buildLibList(libs));
         libsCP = buildLibsClasspath(libPath);
         if (libsCP != null) {
-            compileCP = ClassPathSupport.createProxyClassPath(libsCP,
-                    CoreClassPathRegistry.getInstance().getCompileClasspath());
             GlobalPathRegistry.getDefault().register(ClassPath.COMPILE, new ClassPath[]{libsCP});
         }
     }
@@ -279,7 +275,6 @@ public class DefaultPraxisProject implements PraxisProject {
         }
         libPath = List.of();
         libsCP = null;
-        compileCP = CoreClassPathRegistry.getInstance().getCompileClasspath();
     }
 
     private List<URI> buildLibList(PArray path) {
@@ -312,8 +307,10 @@ public class DefaultPraxisProject implements PraxisProject {
                 case ClassPath.BOOT:
                 case JavaClassPathConstants.MODULE_BOOT_PATH:
                     return CoreClassPathRegistry.getInstance().getBootClasspath();
+                case JavaClassPathConstants.MODULE_COMPILE_PATH:
+                    return CoreClassPathRegistry.getInstance().getModuleCompilePath();
                 case ClassPath.COMPILE:
-                    return compileCP;
+                    return libsCP;
                 default:
                     return null;
             }

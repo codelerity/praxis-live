@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.java.classpath.GlobalPathRegistry;
+import org.netbeans.api.java.classpath.JavaClassPathConstants;
 import org.netbeans.api.java.platform.JavaPlatform;
 import org.netbeans.spi.java.classpath.support.ClassPathSupport;
 import org.openide.filesystems.FileUtil;
@@ -45,7 +46,7 @@ public class CoreClassPathRegistry {
 
     private final static CoreClassPathRegistry INSTANCE = new CoreClassPathRegistry();
 
-    private ClassPath classPath;
+    private ClassPath moduleCompilePath;
     private ClassPath bootClassPath;
 
     private CoreClassPathRegistry() {
@@ -65,14 +66,13 @@ public class CoreClassPathRegistry {
                 }
             }
 
-            classPath = ClassPathSupport.createClassPath(jars.toArray(
-                    new URL[jars.size()]));
-            GlobalPathRegistry.getDefault().register(ClassPath.COMPILE,
-                    new ClassPath[]{classPath});
+            moduleCompilePath = ClassPathSupport.createClassPath(jars.toArray(URL[]::new));
+            GlobalPathRegistry.getDefault().register(JavaClassPathConstants.MODULE_COMPILE_PATH,
+                    new ClassPath[]{moduleCompilePath});
             
         } catch (Exception ex) {
             Exceptions.printStackTrace(ex);
-            classPath = ClassPath.EMPTY;
+            moduleCompilePath = ClassPath.EMPTY;
         }
 
         bootClassPath = JavaPlatform.getDefault().getBootstrapLibraries();
@@ -80,8 +80,8 @@ public class CoreClassPathRegistry {
 
     }
 
-    ClassPath getCompileClasspath() {
-        return classPath;
+    ClassPath getModuleCompilePath() {
+        return moduleCompilePath;
     }
 
     ClassPath getBootClasspath() {
